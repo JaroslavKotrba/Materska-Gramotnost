@@ -8,6 +8,7 @@
 
 # conda env export --name mat_gram > environment.yml
 # pip list --format=freeze > requirements.txt
+# psycopg2-binary==2.9.9 (Heroku Postgres)
 
 # conda env export --name mat_gram > environment.yml
 # pip list --format=freeze > requirements.txt
@@ -29,6 +30,20 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Security, Depends
+from fastapi.security import APIKeyHeader
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Float,
+    Text,
+    func,
+)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
 # Path
@@ -36,29 +51,86 @@ os.getcwd()
 
 # FastAPI app initialization
 app = FastAPI(
-    title="Financial Chatbot API",
+    title="Maternity Chatbot API",
     description="API for a Czech maternity advisory chatbot",
     version="1.0.0",
 )
 
-# Initialize start time for uptime tracking
-START_TIME = time.time()
-
 # CLIENT DOMAIN
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://jaroslavkotrba.com"],
+    allow_origins=[
+        "https://jaroslavkotrba.com",
+        "https://mat-gram-c3a70edf9532.herokuapp.com",  # Heroku
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Start time for uptime tracking
+START_TIME = time.time()
 
 # Serve static files (CSS, JavaScript)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Initialize Jinja2 for templates - index.html
+# Serve Jinja2 for templates (index.html)
 templates = Jinja2Templates(directory="app/templates")
+
+# Admin security initialization
+api_key_header = APIKeyHeader(name="X-API-Key")
+
+
+async def verify_api_key(api_key: str = Security(api_key_header)):
+    """Verify the API key for protected endpoints"""
+    if api_key != config.admin_api_key:  # Using the admin_api_key from config
+        raise HTTPException(status_code=403, detail="Could not validate API key")
+    return api_key
+
+
+# Database initialization
+port = int(os.getenv("PORT", 8000))  # Heroku
+Base = declarative_base()  # Base
+
+
+class ChatInteraction(Base):
+    """Model for storing chat interactions"""
+
+    __tablename__ = "chat_interactions"
+
+    id = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    user_message = Column(Text, nullable=False)
+    bot_response = Column(Text, nullable=False)
+    response_time = Column(Float)  # in seconds
+    category = Column(String(50))  # pece o miminko, socialni podpora, etc.
+    tokens_used = Column(Integer)
+    error_occurred = Column(Integer, default=0)
+
+
+class Database:
+    """Connect database"""
+
+    def __init__(self):
+        database_url = os.getenv("DATABASE_URL")
+        if database_url and database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+        # Use PostgreSQL if DATABASE_URL is set (Heroku), otherwise use SQLite
+        self.engine = create_engine(database_url or "sqlite:///chatbot.db")
+        Base.metadata.create_all(self.engine)
+        self.SessionLocal = sessionmaker(bind=self.engine)
+
+    def get_session(self):
+        session = self.SessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
+
+
+# Create database
+db = Database()
 
 
 # Pydantic models for request/response validation
@@ -81,7 +153,6 @@ class ClearResponse(BaseModel):
     status: bool
 
 
-# Model
 class ChatbotConfig:
     """Class for chatbot configuration"""
 
@@ -90,6 +161,10 @@ class ChatbotConfig:
         self.openai_api_key = os.getenv("OPENAI_API_KEY")
         if not self.openai_api_key:
             raise ValueError("OPENAI_API_KEY is not available in .env")
+
+        self.admin_api_key = os.getenv("ADMIN_API_KEY")
+        if not self.admin_api_key:
+            raise ValueError("ADMIN_API_KEY is not available in .env")
 
         self.model_name = "gpt-4o-mini"
         self.temperature = 0.4  # Controls randomness in responses
@@ -108,6 +183,7 @@ class CoreChatbot:
     def __init__(self, config: ChatbotConfig):
         self.config = config
         self.conversation_history: List[Dict[str, str]] = []
+        self.db = db
 
         # Initialize embedding model for text vectorization
         self.embeddings_model = OpenAIEmbeddings(
@@ -218,6 +294,42 @@ class CoreChatbot:
             ]
         )
 
+    def _remove_diacritics(self, text: str) -> str:
+        """Remove diacritical marks from Czech"""
+        replacements = {
+            "á": "a",
+            "č": "c",
+            "ď": "d",
+            "é": "e",
+            "ě": "e",
+            "í": "i",
+            "ň": "n",
+            "ó": "o",
+            "ř": "r",
+            "š": "s",
+            "ť": "t",
+            "ú": "u",
+            "ů": "u",
+            "ý": "y",
+            "ž": "z",
+        }
+        return "".join(replacements.get(c.lower(), c.lower()) for c in text)
+
+    def _categorize_message(self, message: str) -> str:
+        """Categorize the incoming message based on content"""
+        categories = {
+            "pece o miminko": ["kojeni", "kojit", "spat", "vyvoj"],
+            "pece o maminku": ["porodni", "cviceni", "deprese"],
+            "prakticke rady": ["vybavicka", "kocarek", "nositko", "prikrm"],
+            "socialni podpora": ["materska", "rodicovska", "prispevek", "davky"],
+        }
+
+        message_normalized = self._remove_diacritics(message).lower()
+        for category, keywords in categories.items():
+            if any(keyword in message_normalized for keyword in keywords):
+                return category
+        return "ostatni"
+
     def format_chat_history(self) -> str:
         """Format the conversation history for context inclusion.
 
@@ -234,6 +346,12 @@ class CoreChatbot:
 
         Updates conversation history and handles any errors during processing.
         Returns an error message if response generation fails."""
+
+        # DB values
+        start_time = time.time()
+        error_occurred = 0
+        tokens_used = 0
+
         try:
             # Updating history
             self.conversation_history.append({"role": "user", "content": user_input})
@@ -264,6 +382,23 @@ class CoreChatbot:
                     else answer.upper()
                 )
 
+            # DB commit
+            response_time = time.time() - start_time
+            category = self._categorize_message(user_input)
+            tokens_used = len(response["answer"].split())
+
+            with next(self.db.get_session()) as session:
+                interaction = ChatInteraction(
+                    user_message=user_input,
+                    bot_response=answer,
+                    response_time=response_time,
+                    category=category,
+                    tokens_used=tokens_used,
+                    error_occurred=error_occurred,
+                )
+                session.add(interaction)
+                session.commit()
+
             # Updating of the history with the answer
             self.conversation_history.append({"role": "assistant", "content": answer})
 
@@ -271,7 +406,21 @@ class CoreChatbot:
             return answer
 
         except Exception as e:
+            error_occurred = 1
             error_msg = "Omlouvám se, ale při zpracování vaší otázky došlo k chybě."
+
+            with next(self.db.get_session()) as session:
+                interaction = ChatInteraction(
+                    user_message=user_input,
+                    bot_response=error_msg,
+                    response_time=time.time() - start_time,
+                    category="error",
+                    tokens_used=0,
+                    error_occurred=error_occurred,
+                )
+                session.add(interaction)
+                session.commit()
+
             print(f"Error while generating response: {str(e)}")
             return error_msg
 
@@ -332,6 +481,64 @@ async def clear_conversation():
         print(f"Error in clear endpoint: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Failed to clear conversation history"
+        )
+
+
+@app.get("/stats")
+async def get_stats(api_key: str = Depends(verify_api_key)):
+    """Get statistics about chat interactions including full conversation history"""
+    try:
+        with next(db.get_session()) as session:
+            # Basic statistics
+            total_interactions = session.query(ChatInteraction).count()
+            avg_response_time = session.query(
+                func.avg(ChatInteraction.response_time)
+            ).scalar()
+            error_rate = session.query(
+                func.avg(ChatInteraction.error_occurred)
+            ).scalar()
+
+            # Category distribution
+            category_counts = (
+                session.query(ChatInteraction.category, func.count(ChatInteraction.id))
+                .group_by(ChatInteraction.category)
+                .all()
+            )
+
+            # Get all conversations with full details
+            conversations = (
+                session.query(ChatInteraction)
+                .order_by(ChatInteraction.timestamp.desc())
+                .all()
+            )
+
+            # Format conversations for response
+            conversation_history = [
+                {
+                    "id": conv.id,
+                    "timestamp": conv.timestamp.isoformat(),
+                    "category": conv.category,
+                    "user_message": conv.user_message,
+                    "bot_response": conv.bot_response,
+                    "response_time": round(conv.response_time, 2),
+                    "tokens_used": conv.tokens_used,
+                    "error_occurred": bool(conv.error_occurred),
+                }
+                for conv in conversations
+            ]
+
+            return {
+                "total_interactions": total_interactions,
+                "average_response_time": (
+                    round(avg_response_time, 2) if avg_response_time else 0
+                ),
+                "error_rate": round(error_rate * 100, 2) if error_rate else 0,
+                "category_distribution": dict(category_counts),
+                "conversations": conversation_history,
+            }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve statistics: {str(e)}"
         )
 
 

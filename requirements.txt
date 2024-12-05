@@ -59,7 +59,8 @@ platformdirs==4.3.6
 prompt_toolkit==3.0.48
 propcache==0.2.0
 psutil==5.9.0
-psycopg2-binary==2.9.9
+# psycopg2-binary==2.9.9
+mysqlclient==2.2.1
 ptyprocess==0.7.0
 pure_eval==0.2.3
 pydantic==2.10.2

@@ -102,8 +102,8 @@ class ChatInteraction(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
     user_message = Column(Text, nullable=False)
     bot_response = Column(Text, nullable=False)
-    response_time = Column(Float)  # in seconds
-    category = Column(String(50))  # pece o miminko, socialni podpora, etc.
+    response_time = Column(Float)
+    category = Column(String(50))
     tokens_used = Column(Integer)
     error_occurred = Column(Integer, default=0)
 
@@ -112,12 +112,16 @@ class Database:
     """Connect database"""
 
     def __init__(self):
-        database_url = os.getenv("DATABASE_URL")
-        if database_url and database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        # Get JAWSDB_URL from Heroku
+        database_url = os.getenv("JAWSDB_URL")
 
-        # Use PostgreSQL if DATABASE_URL is set (Heroku), otherwise use SQLite
-        self.engine = create_engine(database_url or "sqlite:///chatbot.db")
+        if database_url:
+            # We're on Heroku, use JawsDB MySQL
+            self.engine = create_engine(database_url)
+        else:
+            # We're local, use SQLite
+            self.engine = create_engine("sqlite:///chatbot.db")
+
         Base.metadata.create_all(self.engine)
         self.SessionLocal = sessionmaker(bind=self.engine)
 

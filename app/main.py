@@ -322,7 +322,7 @@ class CoreChatbot:
     def _categorize_message(self, message: str) -> str:
         """Categorize the incoming message based on content"""
         categories = {
-            "pece o miminko": ["kojeni", "kojit", "spat", "vyvoj"],
+            "pece o miminko": ["kojeni", "kojit", "spat", "vyvoj", "dite"],
             "pece o maminku": ["porodni", "cviceni", "deprese"],
             "prakticke rady": ["vybavicka", "kocarek", "nositko", "prikrm"],
             "socialni podpora": ["materska", "rodicovska", "prispevek", "davky"],

@@ -11,36 +11,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return window.innerWidth <= 480;
     }
 
-    function handleMobileChat(isActive) {
-        if (isMobile()) {
-            document.body.style.overflow = isActive ? 'hidden' : '';
-            if (isActive) {
-                chatWidget.style.height = '100vh';
-                chatWidget.style.width = '100vw';
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+    function handleResize() {
+        if (chatWidget.classList.contains('active')) {
+            if (isMobile()) {
+                const viewportHeight = window.innerHeight;
+                chatWidget.style.maxHeight = `${viewportHeight * 0.8}px`;
+            } else {
+                chatWidget.style.maxHeight = '';
             }
         }
     }
 
-    // Toggle chat widget
+    // Toggle chat widget and icon
     toggleButton.addEventListener('click', () => {
-        const willBeActive = !chatWidget.classList.contains('active');
         chatWidget.classList.toggle('active');
+        // Toggle the icon class
         toggleIcon.classList.toggle('fa-comments');
         toggleIcon.classList.toggle('fa-times');
 
-        handleMobileChat(willBeActive);
-
-        if (willBeActive) {
+        if (chatWidget.classList.contains('active')) {
             userInput.focus();
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            if (isMobile()) {
+                handleResize();
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
+            }
         }
     });
 
-    // Handle resize
-    window.addEventListener('resize', () => {
-        if (chatWidget.classList.contains('active')) {
-            handleMobileChat(true);
+    // Handle window resize
+    window.addEventListener('resize', handleResize);
+
+    // Handle mobile keyboard
+    userInput.addEventListener('focus', () => {
+        if (isMobile()) {
+            setTimeout(() => {
+                chatWidget.scrollIntoView({ behavior: 'smooth' });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 300);
         }
     });
 
@@ -48,15 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
     userInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-    });
-
-    // Handle mobile keyboard
-    userInput.addEventListener('focus', () => {
-        if (isMobile()) {
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 300);
-        }
     });
 
     // Send message on Enter (but create new line on Shift+Enter)
@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Button click handlers
     sendButton.addEventListener('click', sendMessage);
     clearButton.addEventListener('click', clearConversation);
 

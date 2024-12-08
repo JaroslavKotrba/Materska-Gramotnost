@@ -1,20 +1,3 @@
-/* Reset and base styles */
-*,
-*:before,
-*:after {
-    box-sizing: border-box;
-}
-
-/* When chat is active, prevent body scrolling on mobile */
-@media (max-width: 480px) {
-    body.chat-active {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-}
-
 /* Main container for the chat widget
    Fixed positioning in bottom-right corner */
 .chat-widget-container {
@@ -36,26 +19,16 @@
     color: white;
     border: none;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     cursor: pointer;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    transition: all 0.2s;
+    font-size: 24px;
+    transition: transform 0.2s;
     position: relative;
-}
-
-/* Change button color when chat is active (X is showing) */
-.chat-widget.active~.chat-widget-button {
-    background: #d32f2f;
-}
-
-.chat-widget.active~.chat-widget-button:hover {
-    background: #b71c1c;
-    transform: scale(1.1);
 }
 
 /* Animated wave effect using pseudo-elements
@@ -96,7 +69,7 @@
     }
 }
 
-/* Button interactions */
+/* Button interactions and icon styling */
 .chat-widget-button:hover {
     transform: scale(1.1);
 }
@@ -106,7 +79,17 @@
 }
 
 .chat-widget-button i.fa-times {
-    font-size: 24px;
+    font-size: 28px;
+}
+
+/* Change button color when chat is active (X is showing) */
+.chat-widget.active~.chat-widget-button {
+    background: #d32f2f;
+}
+
+.chat-widget.active~.chat-widget-button:hover {
+    background: #b71c1c;
+    transform: scale(1.1);
 }
 
 /* Main chat widget panel
@@ -128,26 +111,24 @@
 
 /* Chat header styling with logo and title */
 .chat-widget-header {
-    padding: 0.8rem;
+    padding: 1rem;
     background: #00aeef;
     color: white;
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 /* Header elements styling */
 .chat-widget-header img {
-    width: 40px;
-    height: 40px;
+    width: 52px;
+    height: 52px;
     object-fit: contain;
 }
 
 .chat-widget-header h1 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-family: 'Baskerville', serif;
     font-weight: 600;
     font-style: italic;
@@ -210,20 +191,14 @@
 .chat-widget-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 0.8rem;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.chat-widget-messages::-webkit-scrollbar {
-    display: none;
+    padding: 1rem;
 }
 
 /* Individual message styling */
 .chat-widget-message {
-    max-width: 85%;
+    max-width: 80%;
     margin: 0.5rem 0;
-    padding: 0.6rem 0.8rem;
+    padding: 0.8rem 1rem;
     border-radius: 12px;
     line-height: 1.4;
 }
@@ -241,12 +216,10 @@
 
 /* Input area styling */
 .chat-widget-input {
-    padding: 0.6rem;
+    padding: 0.8rem;
     padding-bottom: 0.3rem;
     border-top: 1px solid #eee;
     background: white;
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .input-wrapper {
@@ -273,15 +246,15 @@
 /* Send button styling */
 .send-button {
     position: absolute;
-    right: 16px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     background: #00aeef;
     color: white;
     border: none;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -325,203 +298,62 @@
     font-size: small;
 }
 
-/* Mobile styles */
+/* Mobile responsive styles for screens <= 480px */
 @media (max-width: 480px) {
 
-    /* Container adjustments */
+    /* Mobile container adjustments */
     .chat-widget-container {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        bottom: 0;
-        right: 0;
-    }
-
-    /* Main chat window */
-    .chat-widget {
-        display: none;
-        width: 100vw;
-        height: 100vh;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        margin: 0;
-        border-radius: 0;
-        z-index: 9999;
-    }
-
-    .chat-widget.active {
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Header adjustments */
-    .chat-widget-header {
-        padding: 12px;
-    }
-
-    .chat-widget-header img {
-        width: 40px;
-        height: 40px;
-    }
-
-    .chat-widget-header h1 {
-        font-size: 1.1rem;
-    }
-
-    /* Message container */
-    .chat-widget-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1rem;
-        padding-bottom: 180px;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .chat-widget-message {
-        max-width: 85%;
-        margin: 8px 0;
-        padding: 0.8rem 1rem;
-    }
-
-    /* Background overlay */
-    .chat-widget::after {
-        content: '';
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 160px;
-        background: #f8f8f8;
-        box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
-        z-index: 9998;
-    }
-
-    /* Input area adjustments */
-    .chat-widget-input {
-        position: fixed;
-        bottom: 85px;
-        left: 0;
-        width: 100%;
-        padding: 0.8rem;
-        z-index: 9999;
-    }
-
-    /* Textarea adjustments */
-    .chat-widget-input textarea {
-        min-height: 50px;
-        max-height: 100px;
-        font-size: 16px;
-        padding: 12px 50px 12px 12px;
-    }
-
-    /* Send button adjustments */
-    .send-button {
-        right: 15px;
-        width: 40px;
-        height: 40px;
-        z-index: 10000;
-    }
-
-    /* Clear button positioning */
-    .clear-button {
-        position: fixed;
-        bottom: 35px;
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 0;
-        padding: 8px 16px;
-        font-size: 14px;
-        z-index: 9999;
-    }
-
-    /* Footer message positioning */
-    .love-message {
-        position: fixed;
-        bottom: 8px;
-        left: 0;
-        width: 100%;
-        padding: 5px 0;
-        margin: 0;
-        font-size: 12px;
-        z-index: 9999;
-    }
-
-    /* Toggle button positioning */
-    .chat-widget-button {
-        position: fixed;
         bottom: 20px;
         right: 20px;
-        z-index: 10000;
-        margin: 0;
+        width: 300px;
+        height: auto;
+        max-height: 80vh;
+    }
+
+    /* Mobile chat widget adjustments */
+    .chat-widget {
+        height: 400px;
+        border-radius: 16px;
+        margin-bottom: 10px;
+    }
+
+    /* Mobile button size adjustments */
+    .chat-widget-button {
+        margin-right: 0;
+        margin-bottom: 0;
         width: 50px;
         height: 50px;
-    }
-}
-
-/* Landscape mode adjustments */
-@media (max-width: 480px) and (orientation: landscape) {
-    .chat-widget {
-        height: 100vh;
+        font-size: 20px;
+        z-index: 1001;
     }
 
-    .chat-widget-messages {
-        padding-bottom: 120px;
-    }
-
-    .chat-widget::after {
-        height: 110px;
-    }
-
-    .chat-widget-input {
-        bottom: 65px;
-    }
-
-    .clear-button {
-        bottom: 25px;
-    }
-
-    .love-message {
-        bottom: 3px;
-    }
-
+    /* Mobile header adjustments */
     .chat-widget-header {
-        padding: 8px 12px;
+        padding: 0.8rem;
+        gap: 8px;
     }
 
-    .chat-widget-header img {
-        width: 32px;
-        height: 32px;
+    /* Additional mobile-specific adjustments... */
+}
+
+/* Landscape mode adjustments for mobile */
+@media (orientation: landscape) and (max-width: 480px) {
+    .chat-widget-container {
+        max-height: 90vh;
+    }
+
+    .chat-widget {
+        height: 350px;
     }
 }
 
-/* Safe area adjustments for notched phones */
-@supports (padding: max(0px)) {
-    @media (max-width: 480px) {
-        .chat-widget-messages {
-            padding-bottom: calc(180px + env(safe-area-inset-bottom));
-        }
+/* Tablet responsive styles */
+@media (min-width: 481px) and (max-width: 768px) {
+    .chat-widget-container {
+        width: 340px;
+    }
 
-        .chat-widget::after {
-            height: calc(140px + env(safe-area-inset-bottom));
-        }
-
-        .chat-widget-input {
-            bottom: calc(85px + env(safe-area-inset-bottom));
-        }
-
-        .clear-button {
-            bottom: calc(35px + env(safe-area-inset-bottom));
-        }
-
-        .love-message {
-            bottom: calc(8px + env(safe-area-inset-bottom));
-        }
-
-        .chat-widget-button {
-            bottom: max(20px, calc(20px + env(safe-area-inset-bottom)));
-        }
+    .chat-widget {
+        height: 450px;
     }
 }

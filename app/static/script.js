@@ -7,6 +7,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendButton = document.getElementById('sendButton');
     const clearButton = document.getElementById('clearButton');
 
+    // Create typing indicator element
+    const typingIndicator = document.createElement('div');
+    typingIndicator.className = 'typing-indicator';
+    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+
+    function showTypingIndicator() {
+        if (!chatMessages.contains(typingIndicator)) {
+            chatMessages.appendChild(typingIndicator);
+        }
+        // Use setTimeout to ensure the transition works
+        setTimeout(() => typingIndicator.classList.add('active'), 10);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        typingIndicator.classList.remove('active');
+        // Remove the element after the fade-out animation
+        setTimeout(() => {
+            if (chatMessages.contains(typingIndicator)) {
+                chatMessages.removeChild(typingIndicator);
+            }
+        }, 300);
+    }
+
     function isMobile() {
         return window.innerWidth <= 480;
     }
@@ -88,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sendButton.disabled = true;
 
         appendMessage(message, true);
+        showTypingIndicator();
 
         try {
             const response = await fetch('/chat', {
@@ -103,9 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
+            hideTypingIndicator();
             appendMessage(data.response, false);
         } catch (error) {
             console.error('Error:', error);
+            hideTypingIndicator();
             appendMessage('Omlouvám se, došlo k chybě. Zkuste to prosím znovu.', false);
         } finally {
             userInput.value = '';

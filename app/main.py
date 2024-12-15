@@ -469,14 +469,11 @@ async def chat(request: ChatRequest):
     Send a message to the chatbot and get a response
     """
     try:
-        # Generate new session ID if none provided
-        if not request.session_id:
-            request.session_id = str(uuid.uuid4())
-        response = chatbot.get_response(request.message, request.session_id)
+        # Use provided session_id or get current one from chatbot
+        session_id = request.session_id or chatbot.current_session_id
+        response = chatbot.get_response(request.message, session_id)
         return ChatResponse(
-            response=response,
-            conversation_history=chatbot.get_conversation_history(),
-            session_id=request.session_id,  # Return session ID to client
+            response=response, conversation_history=chatbot.get_conversation_history()
         )
     except Exception as e:
         print(f"Error in chat endpoint: {str(e)}")

@@ -18,6 +18,7 @@ from typing import List, Dict
 from datetime import datetime
 import time
 import psutil
+import uuid
 from pydantic import BaseModel
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
@@ -99,6 +100,7 @@ class ChatInteraction(Base):
     __tablename__ = "chat_interactions"
 
     id = Column(Integer, primary_key=True)
+    session_id = Column(String(36), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
     user_message = Column(Text, nullable=False)
     bot_response = Column(Text, nullable=False)
@@ -145,6 +147,7 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
+    session_id: str = None
 
 
 class ChatResponse(BaseModel):
@@ -188,6 +191,7 @@ class CoreChatbot:
         self.config = config
         self.conversation_history: List[Dict[str, str]] = []
         self.db = db
+        self.current_session_id = str(uuid.uuid4())
 
         # Initialize embedding model for text vectorization
         self.embeddings_model = OpenAIEmbeddings(
@@ -243,7 +247,7 @@ class CoreChatbot:
             [
                 (
                     "system",
-                    """Jste přátelský český chatbot zaměřený na podporu a poradenství pro maminky s miminky.
+                    """Jste přátelská česká chatbotka zaměřená na podporu a poradenství pro maminky s miminky.
                 
                 Specializujete se na oblasti:
                 1. Péče o miminko:
@@ -322,8 +326,8 @@ class CoreChatbot:
     def _categorize_message(self, message: str) -> str:
         """Categorize the incoming message based on content"""
         categories = {
-            "pece o miminko": ["kojeni", "kojit", "spat", "vyvoj", "dite"],
-            "pece o maminku": ["porodni", "cviceni", "deprese"],
+            "pece o miminko": ["miminko", "kojeni", "kojit", "spat", "vyvoj", "dite"],
+            "pece o maminku": ["maminka", "porodni", "cviceni", "deprese"],
             "prakticke rady": ["vybavicka", "kocarek", "nositko", "prikrm"],
             "socialni podpora": ["materska", "rodicovska", "prispevek", "davky"],
         }
@@ -345,13 +349,14 @@ class CoreChatbot:
             ]
         )
 
-    def get_response(self, user_input: str) -> str:
+    def get_response(self, user_input: str, session_id: str = None) -> str:
         """Generate a response to user input using the language model.
 
         Updates conversation history and handles any errors during processing.
         Returns an error message if response generation fails."""
 
         # DB values
+        session_id = session_id or self.current_session_id
         start_time = time.time()
         error_occurred = 0
         tokens_used = 0
@@ -393,6 +398,7 @@ class CoreChatbot:
 
             with next(self.db.get_session()) as session:
                 interaction = ChatInteraction(
+                    session_id=session_id,
                     user_message=user_input,
                     bot_response=answer,
                     response_time=response_time,
@@ -415,6 +421,7 @@ class CoreChatbot:
 
             with next(self.db.get_session()) as session:
                 interaction = ChatInteraction(
+                    session_id=session_id,
                     user_message=user_input,
                     bot_response=error_msg,
                     response_time=time.time() - start_time,
@@ -462,9 +469,14 @@ async def chat(request: ChatRequest):
     Send a message to the chatbot and get a response
     """
     try:
-        response = chatbot.get_response(request.message)
+        # Generate new session ID if none provided
+        if not request.session_id:
+            request.session_id = str(uuid.uuid4())
+        response = chatbot.get_response(request.message, request.session_id)
         return ChatResponse(
-            response=response, conversation_history=chatbot.get_conversation_history()
+            response=response,
+            conversation_history=chatbot.get_conversation_history(),
+            session_id=request.session_id,  # Return session ID to client
         )
     except Exception as e:
         print(f"Error in chat endpoint: {str(e)}")
@@ -520,6 +532,7 @@ async def get_stats(api_key: str = Depends(verify_api_key)):
             conversation_history = [
                 {
                     "id": conv.id,
+                    "session_id": conv.session_id,
                     "timestamp": conv.timestamp.isoformat(),
                     "category": conv.category,
                     "user_message": conv.user_message,

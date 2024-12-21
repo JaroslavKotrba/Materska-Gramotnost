@@ -9,6 +9,7 @@
 # conda env export --name mat_gram > environment.yml
 # pip list --format=freeze > requirements.txt
 # psycopg2-binary==2.9.9 (Heroku Postgres)
+# mysqlclient==2.2.1 (JAWSDB MySQL)
 
 # conda env export --name mat_gram > environment.yml
 # pip list --format=freeze > requirements.txt

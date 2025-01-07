@@ -134,7 +134,7 @@
                 </a>
             </div>
             <div style="color: #666;">
-                © 2024 Mami-Bot
+                © 2025 Mami-Bot
                 <p
                     style="font-size: 0.75rem; margin-top: 1rem; line-height: 1.4; max-width: 800px; margin-left: auto; margin-right: auto;">
                     Informace poskytované touto aplikací jsou pouze informativního charakteru. V případě zdravotních
@@ -152,12 +152,25 @@
             <div class="chat-widget-header">
                 <img src="{{ url_for('static', path='/pic/baby-white.png') }}" alt="Mami-Bot Logo" width="52"
                     height="52">
-                <h1>'Mami-Bot'</h1>
+                <h1>Rodičovský Chatbot</h1>
                 <div class="status-indicator"></div>
             </div>
 
             <!-- Messages Container -->
             <div class="chat-widget-messages" id="chatMessages"></div>
+
+            <!-- Quick Options -->
+            <div class="quick-options-header">
+                <span>Časté dotazy</span>
+                <button id="toggleQuickOptions" class="toggle-quick-options">
+                    <i class="fas fa-chevron-up"></i>
+                </button>
+            </div>
+            <div class="quick-options" id="quickOptions">
+                <button class="quick-option">Které plenky jsou nejlepší? 👶</button>
+                <button class="quick-option">Co by mělo zvládat batole? 👣</button>
+                <button class="quick-option">Co pomáhá od bolesti zoubků? 🦷</button>
+            </div>
 
             <!-- Input Area -->
             <div class="chat-widget-input">
@@ -174,7 +187,7 @@
 
             <!-- Footer Message -->
             <div class="love-message">
-                <em>@jaro <span style="color: #ff99b4">&hearts;</span></em>
+                <em>@jaro <span class="heart">&hearts;</span></em>
             </div>
         </div>
 

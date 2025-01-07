@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
     const clearButton = document.getElementById('clearButton');
+    const toggleQuickOptionsBtn = document.getElementById('toggleQuickOptions');
+    const quickOptionsContainer = document.getElementById('quickOptions');
+    const quickOptions = document.querySelectorAll('.quick-option');
 
     // Generate UUID with fallback for mobile browsers
     // Creates a UUID in format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
@@ -73,6 +76,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
+    // Toggle quick options
+    toggleQuickOptionsBtn.addEventListener('click', () => {
+        quickOptionsContainer.classList.toggle('collapsed');
+        toggleQuickOptionsBtn.classList.toggle('collapsed');
+
+        // Save state to localStorage
+        localStorage.setItem('quickOptionsCollapsed',
+            quickOptionsContainer.classList.contains('collapsed'));
+    });
+
+    const wasCollapsed = localStorage.getItem('quickOptionsCollapsed') === 'true';
+    if (wasCollapsed) {
+        quickOptionsContainer.classList.add('collapsed');
+        toggleQuickOptionsBtn.classList.add('collapsed');
+    }
+
+    // Quick options click handler
+    quickOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const cleanText = option.textContent.replace(/[\u{1F300}-\u{1F9FF}]|[\u{2300}-\u{23FF}]|[\u{2702}-\u{27B0}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{2600}-\u{26FF}]|\u{FE0F}|[\u{1F476}]|[\u{1F9B7}]|[\u{1F463}]/gu, '').trim(); userInput.value = cleanText;
+            userInput.dispatchEvent(new Event('input'));
+            userInput.focus();
+        });
+    });
 
     // Toggle chat widget and icon visibility
     toggleButton.addEventListener('click', () => {

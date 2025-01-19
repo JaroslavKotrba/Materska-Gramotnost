@@ -114,7 +114,7 @@ The application includes comprehensive monitoring via the `/health` endpoint:
 ## 💾 Database
 
 The application supports:
-- PostgreSQL for production (via JawsDB on Heroku)
+- MySql for production (via JawsDB on Heroku)
 - SQLite for local development
 - Automatic schema creation
 - Interaction logging and analytics

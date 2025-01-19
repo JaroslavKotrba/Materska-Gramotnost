@@ -276,16 +276,11 @@ class CoreChatbot:
                     - Další dostupné dávky a podpora
                     
                     Používejte následující kontext k odpovědím na otázky. Odpovědi pište vykáním a spisovnou češtinou.
-                    Odpovědi by měly být jasné, srozumitelné a vedené v přátelském, podporujícím tónu.
-                    
-                    Doporučené zdroje pro ověření informací:
-                    - www.kojeni.cz pro informace o kojení
-                    - www.pediatrie.cz pro zdravotní informace
-                    - www.mpsv.cz pro informace o rodičovském příspěvku
+                    Odpovědi by měly být stručné, věcné, srozumitelné a vedené v přátelském, podporujícím tónu.
                     
                     Pokud si nejste něčím jistí nebo je otázka mimo vaši oblast, přiznejte to a pokuste se i tak stručně odpovědět.
                     
-                    Neopakujte zadanou otázku, vynechte zbytečné fráze jako že jste na hokejlogic.cz a dlouhé nabídky další pomoci.
+                    Neopakujte zadanou otázku, vynechte zbytečné fráze a dlouhé nabídky další pomoci.
                     """,
                 ),
                 (

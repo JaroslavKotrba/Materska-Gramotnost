@@ -31,13 +31,16 @@ from fastapi.security import APIKeyHeader
 from sqlalchemy import (
     func,
 )
-from .database.models import ChatInteraction
+from .schemas.models import ChatInteraction
 from .database import db
 from .schemas.models import ChatRequest, ChatResponse, ClearResponse
 from .core.chatbot import ChatbotConfig, CoreChatbot
 
 # Path
 os.getcwd()
+
+# Port configuration for Heroku
+port = int(os.getenv("PORT", 8000))
 
 # Configure logging to track chatbot operations and errors
 logging.basicConfig(

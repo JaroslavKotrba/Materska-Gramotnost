@@ -11,7 +11,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 
 from ..database import db
-from ..database.models import ChatInteraction
+from ..schemas.models import ChatInteraction
 from ..schemas.models import Message
 from dotenv import load_dotenv
 

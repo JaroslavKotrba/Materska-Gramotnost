@@ -1,4 +1,5 @@
 import os
+import logging
 import time
 import uuid
 from typing import List, Dict
@@ -13,6 +14,9 @@ from ..database import db
 from ..database.models import ChatInteraction
 from ..schemas.models import Message
 from dotenv import load_dotenv
+
+# Logger
+logger = logging.getLogger(__name__)
 
 
 class ChatbotConfig:
@@ -47,11 +51,13 @@ class CoreChatbot:
         self.conversation_history: List[Dict[str, str]] = []
         self.db = db
         self.current_session_id = str(uuid.uuid4())
+        logger.info(f"Loading models.")
 
         # Initialize embedding model for text vectorization
         self.embeddings_model = OpenAIEmbeddings(
             model="text-embedding-ada-002", openai_api_key=config.openai_api_key
         )
+        logger.info(f"Successfully loaded embedding model.")
 
         # Set up the main language model for generating responses
         self.chat_model = ChatOpenAI(
@@ -59,6 +65,7 @@ class CoreChatbot:
             temperature=config.temperature,
             openai_api_key=config.openai_api_key,
         )
+        logger.info(f"Successfully loaded {config.model_name}.")
 
         # Initialize vector store and retrieval system
         self.vector_store = self._load_vector_store()
@@ -90,7 +97,7 @@ class CoreChatbot:
                 allow_dangerous_deserialization=True,
             )
         except Exception as e:
-            print(f"Error while loading of the vector store: {str(e)}")
+            logger.error(f"Error while loading of the vector store: {str(e)}")
             raise
 
     def _create_prompt_template(self) -> ChatPromptTemplate:
@@ -258,7 +265,7 @@ class CoreChatbot:
             # Updating of the history with the answer
             self.conversation_history.append({"role": "assistant", "content": answer})
 
-            print(f"Successful answer for the input: {user_input[:50]}...")
+            logger.info(f"Successful answer for the input: '{user_input[:50]}'...")
             return answer
 
         except Exception as e:
@@ -278,13 +285,13 @@ class CoreChatbot:
                 session.add(interaction)
                 session.commit()
 
-            print(f"Error while generating response: {str(e)}")
+            logger.error(f"Error while generating response: {str(e)}")
             return error_msg
 
     def clear_conversation(self) -> None:
         """Deleting the conversation history"""
         self.conversation_history.clear()
-        print("Conversation history cleared")
+        logger.info("Conversation history cleared")
 
     def get_conversation_history(self) -> List[Message]:
         """Returns the conversation history in the format required by the API"""

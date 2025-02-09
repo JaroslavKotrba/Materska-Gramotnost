@@ -15,7 +15,7 @@
 # pip list --format=freeze > requirements.txt
 
 import os
-from typing import List, Dict
+import logging
 from datetime import datetime
 import time
 import psutil
@@ -38,6 +38,14 @@ from .core.chatbot import ChatbotConfig, CoreChatbot
 
 # Path
 os.getcwd()
+
+# Configure logging to track chatbot operations and errors
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 # FastAPI app initialization
 app = FastAPI(
@@ -83,7 +91,7 @@ try:
     config = ChatbotConfig()
     chatbot = CoreChatbot(config)
 except Exception as e:
-    print(f"Failed to initialize chatbot: {str(e)}")
+    logger.error(f"Failed to initialize chatbot: {str(e)}")
     raise
 
 
@@ -106,7 +114,7 @@ async def chat(request: ChatRequest):
             response=response, conversation_history=chatbot.get_conversation_history()
         )
     except Exception as e:
-        print(f"Error in chat endpoint: {str(e)}")
+        logger.error(f"Error in chat endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -121,7 +129,7 @@ async def clear_conversation():
             message="Conversation history cleared successfully", status=True
         )
     except Exception as e:
-        print(f"Error in clear endpoint: {str(e)}")
+        logger.error(f"Error in clear endpoint: {str(e)}")
         raise HTTPException(
             status_code=500, detail="Failed to clear conversation history"
         )

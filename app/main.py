@@ -19,7 +19,6 @@ import logging
 from datetime import datetime
 import time
 import psutil
-from langchain_community.vectorstores import FAISS
 from fastapi import FastAPI, HTTPException
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse

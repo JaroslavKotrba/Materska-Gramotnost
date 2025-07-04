@@ -1,7 +1,10 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from ..schemas.models import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+# Database initialization (base from sqlalchemy)
+Base = declarative_base()  # Base
 
 
 class Database:

@@ -11,6 +11,7 @@ import psutil
 
 from ..schemas.models import ChatInteraction, ChatRequest, ChatResponse, ClearResponse
 from ..database import db
+from ..config.config import VERSION
 
 # Configure logging for this router
 logger = logging.getLogger(__name__)
@@ -168,7 +169,7 @@ async def health_check():
         return {
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
-            "version": router.app.version if hasattr(router, "app") else "1.0.0",
+            "version": VERSION,
             "components": {
                 "openai": "operational" if openai_status else "failed",
                 "vector_store": "operational" if vector_store_status else "failed",

@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .core.chatbot import ChatbotConfig, CoreChatbot
 from .routers import endpoints
+from .config.config import VERSION
 
 # Path
 os.getcwd()
@@ -43,7 +44,7 @@ START_TIME = time.time()
 app = FastAPI(
     title="Maternity Chatbot API",
     description="API for a Czech maternity advisory chatbot",
-    version="1.0.0",
+    version=VERSION,
 )
 
 # CLIENT DOMAIN

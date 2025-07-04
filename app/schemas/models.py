@@ -1,11 +1,8 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Float, Text
-from sqlalchemy.ext.declarative import declarative_base
 from typing import List
 from pydantic import BaseModel
-
-# Database initialization (base from sqlalchemy)
-Base = declarative_base()  # Base
+from ..database.database import Base
 
 
 class ChatInteraction(Base):

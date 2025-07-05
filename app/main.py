@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .core.chatbot import ChatbotConfig, CoreChatbot
 from .routers import endpoints
-from .config.config import VERSION
+from .const.constants import VERSION
 
 # Path
 os.getcwd()

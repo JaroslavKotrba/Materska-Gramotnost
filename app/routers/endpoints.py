@@ -11,7 +11,7 @@ import psutil
 
 from ..schemas.models import ChatInteraction, ChatRequest, ChatResponse, ClearResponse
 from ..database import db
-from ..config.config import VERSION
+from ..const.constants import VERSION
 
 # Configure logging for this router
 logger = logging.getLogger(__name__)

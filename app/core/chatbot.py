@@ -36,7 +36,7 @@ class ChatbotConfig:
         self.temperature = 0.4  # Controls randomness in responses
         self.chunk_size = 1000  # Size of text chunks for processing
         self.chunk_overlap = 200  # Overlap between chunks to maintain context
-        self.top_k_results = 5  # Number of similar documents to retrieve
+        self.top_k_results = 5  # Number of similar chunks to retrieve
         self.max_history = 4  # Maximum number of conversation turns to remember
 
 

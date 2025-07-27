@@ -75,3 +75,11 @@ endpoints.init_router(config, chatbot, START_TIME)
 
 # Include the endpoints router
 app.include_router(endpoints.router)
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup event"""
+    logger.info(
+        "🚀 Maternity Chatbot API starting up locally at: http://127.0.0.1:8000"
+    )
